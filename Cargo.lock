@@ -9929,7 +9929,7 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 [[package]]
 name = "staging-xcm"
 version = "1.0.0"
-source = "git+https://github.com/moondance-labs/polkadot-sdk?branch=tanssi-polkadot-v1.1.0#b3aad072b812b51c18f5cda9575cf3c7b5095451"
+source = "git+https://github.com/moondance-labs/polkadot-sdk?branch=tanssi-polkadot-v1.3.0#c3d18c8c2f4c5462b752b98eb2908dc32b5ec985"
 dependencies = [
  "bounded-collections",
  "derivative",
@@ -11964,12 +11964,12 @@ dependencies = [
 [[package]]
 name = "xcm-procedural"
 version = "1.0.0"
-source = "git+https://github.com/moondance-labs/polkadot-sdk?branch=tanssi-polkadot-v1.1.0#b3aad072b812b51c18f5cda9575cf3c7b5095451"
+source = "git+https://github.com/moondance-labs/polkadot-sdk?branch=tanssi-polkadot-v1.3.0#c3d18c8c2f4c5462b752b98eb2908dc32b5ec985"
 dependencies = [
  "Inflector",
  "proc-macro2",
  "quote",
- "syn 2.0.33",
+ "syn 2.0.39",
 ]
 
 [[package]]

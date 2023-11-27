@@ -148,7 +148,7 @@ substrate-test-runtime-client = { version = "2.0.0", git = "https://github.com/m
 substrate-wasm-builder = { version = "5.0.0-dev", git = "https://github.com/moondance-labs/polkadot-sdk", branch = "tanssi-polkadot-v1.3.0" }
 
 # XCM
-xcm = { package = "staging-xcm", version = "1.0.0", git = "https://github.com/moondance-labs/polkadot-sdk", branch = "tanssi-polkadot-v1.1.0", default-features = false }
+xcm = { package = "staging-xcm", version = "1.0.0", git = "https://github.com/moondance-labs/polkadot-sdk", branch = "tanssi-polkadot-v1.3.0", default-features = false }
 
 # Frontier Client
 fc-api = { version = "1.0.0-dev", path = "client/api" }
