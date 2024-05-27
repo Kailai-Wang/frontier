@@ -763,6 +763,62 @@ fn create_foo_bar_contract_creator(
 }
 
 #[test]
+fn test_contract_deploy_succeeds_if_address_is_allowed(){
+	new_test_ext().execute_with(|| {
+		let gas_limit: u64 = 1_000_000;
+		let weight_limit = FixedGasWeightMapping::<Test>::gas_to_weight(gas_limit, true);
+
+		<Test as Config>::Runner::create(
+			// Alith is allowed to deploy contracts
+			H160::from([4u8;20]),
+			hex::decode(FOO_BAR_CONTRACT_CREATOR_BYTECODE.trim_end()).unwrap(),
+			U256::zero(),
+			gas_limit,
+			Some(FixedGasPrice::min_gas_price().0),
+			None,
+			None,
+			Vec::new(),
+			true, // transactional
+			true, // must be validated
+			Some(weight_limit),
+			Some(0),
+			&<Test as Config>::config().clone(),
+		).is_ok();
+	});
+}
+
+#[test]
+fn test_contract_deploy_fails_if_address_not_allowed(){
+	new_test_ext().execute_with(|| {
+		let gas_limit: u64 = 1_000_000;
+		let weight_limit = FixedGasWeightMapping::<Test>::gas_to_weight(gas_limit, true);
+
+		match <Test as Config>::Runner::create(
+			// Bob is not allowed to deploy contracts
+			H160::from([5u8;20]),
+			hex::decode(FOO_BAR_CONTRACT_CREATOR_BYTECODE.trim_end()).unwrap(),
+			U256::zero(),
+			gas_limit,
+			Some(FixedGasPrice::min_gas_price().0),
+			None,
+			None,
+			Vec::new(),
+			true, // transactional
+			true, // must be validated
+			Some(weight_limit),
+			Some(0),
+			&<Test as Config>::config().clone(),
+		) {
+			Err(RunnerError {
+				error: Error::CreateOriginNotAllowed,
+				..
+			}) => (),
+			_ => panic!("Should have failed with CreateOriginNotAllowed"),
+		}
+	});
+}
+
+#[test]
 fn test_inner_contract_deploy_succeeds_if_address_is_allowed(){
 	new_test_ext().execute_with(|| {
 		let gas_limit: u64 = 1_000_000;
