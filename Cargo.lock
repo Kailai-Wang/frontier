@@ -2268,7 +2268,7 @@ dependencies = [
 [[package]]
 name = "evm"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=agustin-contract-deploy-filter#6acf4c683ba7fdd1ffdf6c31221fdc8d88227177"
+source = "git+https://github.com/moondance-labs/evm?branch=agustin-contract-deploy-filter#6acf4c683ba7fdd1ffdf6c31221fdc8d88227177"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -2288,7 +2288,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=agustin-contract-deploy-filter#6acf4c683ba7fdd1ffdf6c31221fdc8d88227177"
+source = "git+https://github.com/moondance-labs/evm?branch=agustin-contract-deploy-filter#6acf4c683ba7fdd1ffdf6c31221fdc8d88227177"
 dependencies = [
  "parity-scale-codec",
  "primitive-types",
@@ -2299,7 +2299,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=agustin-contract-deploy-filter#6acf4c683ba7fdd1ffdf6c31221fdc8d88227177"
+source = "git+https://github.com/moondance-labs/evm?branch=agustin-contract-deploy-filter#6acf4c683ba7fdd1ffdf6c31221fdc8d88227177"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2310,7 +2310,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=agustin-contract-deploy-filter#6acf4c683ba7fdd1ffdf6c31221fdc8d88227177"
+source = "git+https://github.com/moondance-labs/evm?branch=agustin-contract-deploy-filter#6acf4c683ba7fdd1ffdf6c31221fdc8d88227177"
 dependencies = [
  "auto_impl",
  "environmental",
