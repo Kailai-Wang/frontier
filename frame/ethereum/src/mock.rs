@@ -157,7 +157,7 @@ impl AddressMapping<AccountId32> for HashedAddressMapping {
 
 parameter_types! {
 	pub SuicideQuickClearLimit: u32 = 0;
-	// Alice is allowed to create contracts via CREATE and inner CALLs
+	// Alice is allowed to create contracts via CREATE and CALL(CREATE)
 	pub AllowedAddressesCreate: Vec<H160> = vec![H160::from_str("0x1a642f0e3c3af545e7acbd38b07251b3990914f1").expect("alice address")];
 	pub AllowedAddressesCreateInner: Vec<H160> = vec![H160::from_str("0x1a642f0e3c3af545e7acbd38b07251b3990914f1").expect("alice address")];
 }
