@@ -140,10 +140,10 @@ pub mod pallet {
 		/// Allow the origin to call on behalf of given address.
 		type CallOrigin: EnsureAddressOrigin<Self::RuntimeOrigin>;
 
-		/// Allow the origin to dispatch create-type calls on behalf of given address.
+		/// Allow the source address to deploy contracts directly via CREATE calls.
 		type CreateOrigin: EnsureCreateOrigin<Self>;
 
-		/// Allow the origin to dispatch create-type calls on behalf of given address.
+		/// Allow the source address to deploy contracts via CALL(CREATE) calls.
 		type CreateInnerOrigin: EnsureCreateOrigin<Self>;
 
 		/// Allow the origin to withdraw on behalf of given address.
