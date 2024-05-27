@@ -143,6 +143,9 @@ pub mod pallet {
 		/// Allow the origin to dispatch create-type calls on behalf of given address.
 		type CreateOrigin: EnsureCreateOrigin<Self>;
 
+		/// Allow the origin to dispatch create-type calls on behalf of given address.
+		type CreateInnerOrigin: EnsureCreateOrigin<Self>;
+
 		/// Allow the origin to withdraw on behalf of given address.
 		type WithdrawOrigin: EnsureAddressOrigin<Self::RuntimeOrigin, Success = Self::AccountId>;
 
@@ -881,7 +884,7 @@ impl<T: Config> Pallet<T> {
 	/// Create an account.
 	pub fn create_account(address: H160, code: Vec<u8>, caller: Option<H160>) -> Result<(), ExitError>{
  		if let Some(caller_address) = caller {
-			T::CreateOrigin::check_create_origin(&caller_address).map_err(|e| {
+			T::CreateInnerOrigin::check_create_origin(&caller_address).map_err(|e| {
 				let error: &'static str = e.into();
 				ExitError::Other(Cow::Borrowed(error))
 			})?;
