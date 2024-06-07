@@ -32,6 +32,7 @@ use sp_runtime::{
 use crate::{
 	EnsureAddressNever, EnsureAddressRoot, FeeCalculator, IdentityAddressMapping,
 	IsPrecompileResult, Precompile, PrecompileHandle, PrecompileResult, PrecompileSet,
+	EnsureAllowedCreateAddress
 };
 
 frame_support::construct_runtime! {
@@ -132,6 +133,8 @@ parameter_types! {
 	pub WeightPerGas: Weight = Weight::from_parts(20_000, 0);
 	pub MockPrecompiles: MockPrecompileSet = MockPrecompileSet;
 	pub SuicideQuickClearLimit: u32 = 0;
+	pub AllowedAddressesCreate: Vec<H160> = vec![H160::default(), H160::from([4u8;20])];
+	pub AllowedAddressesCreateInner: Vec<H160> = vec![H160::from([4u8;20]), H160::from([5u8;20])];
 }
 impl crate::Config for Test {
 	type FeeCalculator = FixedGasPrice;
@@ -140,6 +143,8 @@ impl crate::Config for Test {
 
 	type BlockHashMapping = crate::SubstrateBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<Self::AccountId>;
+	type CreateOrigin = EnsureAllowedCreateAddress<AllowedAddressesCreate>;
+	type CreateInnerOrigin = EnsureAllowedCreateAddress<AllowedAddressesCreateInner>;
 
 	type WithdrawOrigin = EnsureAddressNever<Self::AccountId>;
 	type AddressMapping = IdentityAddressMapping;
