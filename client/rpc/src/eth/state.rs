@@ -41,7 +41,7 @@ where
 	C::Api: BlockBuilderApi<B> + EthereumRuntimeRPCApi<B>,
 	C: HeaderBackend<B> + StorageProvider<B, BE> + 'static,
 	BE: Backend<B> + 'static,
-	P: TransactionPool<Block = B> + 'static,
+	P: TransactionPool<Block = B> + 'static +?Sized,
 	A: ChainApi<Block = B>,
 	CIDP: CreateInherentDataProviders<B, ()> + Send + 'static,
 {
@@ -133,16 +133,17 @@ where
 
 			let mut current_nonce = nonce;
 			let mut current_tag = (address, nonce).encode();
-			for tx in self.pool.ready() {
-				// since transactions in `ready()` need to be ordered by nonce
-				// it's fine to continue with current iterator.
-				if tx.provides().first() == Some(&current_tag) {
-					current_nonce = current_nonce.saturating_add(1.into());
-					current_tag = (address, current_nonce).encode();
+			if let Some(ready_txs) = self.pool.ready(substrate_hash) {
+				for tx in ready_txs {
+					// since transactions in `ready()` need to be ordered by nonce
+					// it's fine to continue with current iterator.
+					if tx.provides().first() == Some(&current_tag) {
+						current_nonce = current_nonce.saturating_add(1.into());
+						current_tag = (address, current_nonce).encode();
+					}
 				}
+				return Ok(current_nonce);
 			}
-
-			return Ok(current_nonce);
 		}
 
 		let id = match frontier_backend_client::native_block_id::<B, C>(

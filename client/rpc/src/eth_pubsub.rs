@@ -57,7 +57,7 @@ impl IdProvider for EthereumSubIdProvider {
 }
 
 /// Eth pub-sub API implementation.
-pub struct EthPubSub<B: BlockT, P, C, BE> {
+pub struct EthPubSub<B: BlockT, P: ?Sized, C, BE> {
 	pool: Arc<P>,
 	client: Arc<C>,
 	sync: Arc<SyncingService<B>>,
@@ -68,7 +68,7 @@ pub struct EthPubSub<B: BlockT, P, C, BE> {
 	_marker: PhantomData<BE>,
 }
 
-impl<B: BlockT, P, C, BE> Clone for EthPubSub<B, P, C, BE> {
+impl<B: BlockT, P: ?Sized, C, BE> Clone for EthPubSub<B, P, C, BE> {
 	fn clone(&self) -> Self {
 		Self {
 			pool: self.pool.clone(),
@@ -85,7 +85,7 @@ impl<B: BlockT, P, C, BE> Clone for EthPubSub<B, P, C, BE> {
 
 impl<B: BlockT, P, C, BE> EthPubSub<B, P, C, BE>
 where
-	P: TransactionPool<Block = B> + 'static,
+	P: TransactionPool<Block = B> + 'static + ?Sized,
 	C: ProvideRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
 	C: HeaderBackend<B> + StorageProvider<B, BE>,
@@ -214,7 +214,7 @@ where
 impl<B: BlockT, P, C, BE> EthPubSubApiServer for EthPubSub<B, P, C, BE>
 where
 	B: BlockT,
-	P: TransactionPool<Block = B> + 'static,
+	P: TransactionPool<Block = B> + 'static + ?Sized,
 	C: ProvideRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
 	C: BlockchainEvents<B> + 'static,
@@ -227,7 +227,7 @@ where
 			_ => FilteredParams::default(),
 		};
 
-		let pubsub = self.clone();
+		let pubsub  = self.clone();
 		// Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
 		let (inner_sink, block_notification_stream) =
 			sc_utils::mpsc::tracing_unbounded("pubsub_notification_stream", 100_000);

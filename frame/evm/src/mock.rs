@@ -31,9 +31,9 @@ use sp_runtime::{
 };
 
 use crate::{
-	EnsureAddressNever, EnsureAddressRoot, FeeCalculator, IdentityAddressMapping,
-	IsPrecompileResult, Precompile, PrecompileHandle, PrecompileResult, PrecompileSet,
-	EnsureAllowedCreateAddress
+	EnsureAddressNever, EnsureAddressRoot, EnsureAllowedCreateAddress, FeeCalculator,
+	IdentityAddressMapping, IsPrecompileResult, Precompile, PrecompileHandle, PrecompileResult,
+	PrecompileSet,
 };
 
 frame_support::construct_runtime! {

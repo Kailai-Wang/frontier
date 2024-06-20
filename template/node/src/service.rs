@@ -35,7 +35,8 @@ pub use crate::{
 };
 
 type BasicImportQueue = sc_consensus::DefaultImportQueue<Block>;
-type FullPool<Client> = sc_transaction_pool::FullPool<Block, Client>;
+type FullPool<Client> =
+	sc_transaction_pool::BasicPool<sc_transaction_pool::FullChainApi<Client, Block>, Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
 type GrandpaBlockImport<Client> =
@@ -159,7 +160,7 @@ where
 	)?;
 
 	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
-		config.transaction_pool.clone(),
+		Default::default(),
 		config.role.is_authority().into(),
 		config.prometheus_registry(),
 		task_manager.spawn_essential_handle(),

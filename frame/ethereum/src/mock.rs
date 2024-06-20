@@ -33,7 +33,9 @@ use sp_runtime::{
 	AccountId32, BuildStorage,
 };
 // Frontier
-use pallet_evm::{AddressMapping, EnsureAddressTruncated, EnsureAllowedCreateAddress, FeeCalculator};
+use pallet_evm::{
+	AddressMapping, EnsureAddressTruncated, EnsureAllowedCreateAddress, FeeCalculator,
+};
 
 use super::*;
 use crate::IntermediateStateRoot;
