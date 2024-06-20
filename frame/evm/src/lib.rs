@@ -739,7 +739,7 @@ where
 	AddressGetter: Get<Vec<H160>>,
 {
 	fn check_create_origin(address: &H160) -> Result<(), Error<T>> {
-		if !AddressGetter::get().contains(address){
+		if !AddressGetter::get().contains(address) {
 			return Err(Error::<T>::CreateOriginNotAllowed);
 		}
 		Ok(())
@@ -883,13 +883,17 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Create an account.
-	pub fn create_account(address: H160, code: Vec<u8>, caller: Option<H160>) -> Result<(), ExitError>{
- 		if let Some(caller_address) = caller {
+	pub fn create_account(
+		address: H160,
+		code: Vec<u8>,
+		caller: Option<H160>,
+	) -> Result<(), ExitError> {
+		if let Some(caller_address) = caller {
 			T::CreateInnerOrigin::check_create_origin(&caller_address).map_err(|e| {
 				let error: &'static str = e.into();
 				ExitError::Other(Cow::Borrowed(error))
 			})?;
-		} 
+		}
 		if <Suicided<T>>::contains_key(address) {
 			// This branch should never trigger, because when Suicided
 			// contains an address, then its nonce will be at least one,

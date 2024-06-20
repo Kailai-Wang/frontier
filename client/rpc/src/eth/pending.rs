@@ -56,7 +56,7 @@ pub(crate) enum Error {
 	ApplyExtrinsicFailed(#[from] ApplyExtrinsicFailed),
 }
 
-impl<B, C, P, CT, BE, A, CIDP, EC> Eth<B, C, P, CT, BE, A, CIDP, EC>
+impl<B, C, P: ?Sized, CT, BE, A, CIDP, EC> Eth<B, C, P, CT, BE, A, CIDP, EC>
 where
 	B: BlockT,
 	C: ProvideRuntimeApi<B>,

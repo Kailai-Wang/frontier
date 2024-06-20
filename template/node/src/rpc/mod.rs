@@ -27,7 +27,7 @@ mod eth;
 pub use self::eth::{create_eth, EthDeps};
 
 /// Full client dependencies.
-pub struct FullDeps<B: BlockT, C, P, A: ChainApi, CT, CIDP> {
+pub struct FullDeps<B: BlockT, C, P: ?Sized, A: ChainApi, CT, CIDP> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
@@ -75,7 +75,7 @@ where
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
 	C: BlockchainEvents<B> + AuxStore + UsageProvider<B> + StorageProvider<B, BE>,
 	BE: Backend<B> + 'static,
-	P: TransactionPool<Block = B> + 'static,
+	P: TransactionPool<Block = B> + 'static + ?Sized,
 	A: ChainApi<Block = B> + 'static,
 	CIDP: CreateInherentDataProviders<B, ()> + Send + 'static,
 	CT: fp_rpc::ConvertTransaction<<B as BlockT>::Extrinsic> + Send + Sync + 'static,
