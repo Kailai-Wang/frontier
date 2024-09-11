@@ -28,10 +28,7 @@ use sp_core::{H160, H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 
 use fp_evm::{ExitError, ExitReason, Transfer};
-use pallet_evm::{
-	Context, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, IdentityAddressMapping,
-	PrecompileHandle,
-};
+use pallet_evm::{Context, EnsureAddressNever, EnsureAddressRoot, EnsureAllowedCreateAddress, FeeCalculator, IdentityAddressMapping, PrecompileHandle};
 
 frame_support::construct_runtime! {
 	pub enum Test {
@@ -134,6 +131,8 @@ parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub WeightPerGas: Weight = Weight::from_parts(20_000, 0);
 	pub SuicideQuickClearLimit: u32 = 0;
+	pub AllowedAddressesCreate: Vec<H160> = vec![H160::from_str("0x1a642f0e3c3af545e7acbd38b07251b3990914f1").expect("alice address")];
+	pub AllowedAddressesCreateInner: Vec<H160> = vec![H160::from_str("0x1a642f0e3c3af545e7acbd38b07251b3990914f1").expect("alice address")];
 }
 impl pallet_evm::Config for Test {
 	type FeeCalculator = FixedGasPrice;
@@ -160,6 +159,9 @@ impl pallet_evm::Config for Test {
 	type GasLimitPovSizeRatio = ();
 	type Timestamp = Timestamp;
 	type WeightInfo = ();
+
+	type CreateOrigin = EnsureAllowedCreateAddress<AllowedAddressesCreate>;
+	type CreateInnerOrigin = EnsureAllowedCreateAddress<AllowedAddressesCreateInner>;
 }
 
 pub(crate) struct MockHandle {

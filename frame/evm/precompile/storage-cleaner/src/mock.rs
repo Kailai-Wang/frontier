@@ -19,13 +19,15 @@
 
 use crate::{StorageCleanerPrecompile, StorageCleanerPrecompileCall};
 use frame_support::{parameter_types, weights::Weight};
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, IdentityAddressMapping};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, EnsureAllowedCreateAddress, IdentityAddressMapping};
 use precompile_utils::{precompile_set::*, testing::*};
-use sp_core::{ConstU32, H256, U256};
+use sp_core::{ConstU32, H256, U256, H160};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,
 };
+use std::str::FromStr;
+
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
@@ -121,6 +123,8 @@ parameter_types! {
 	pub WeightPerGas: Weight = Weight::from_parts(20_000, 0);
 	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
 	pub SuicideQuickClearLimit: u32 = 0;
+	pub AllowedAddressesCreate: Vec<H160> = vec![H160::from_str("0x1a642f0e3c3af545e7acbd38b07251b3990914f1").expect("alice address")];
+	pub AllowedAddressesCreateInner: Vec<H160> = vec![H160::from_str("0x1a642f0e3c3af545e7acbd38b07251b3990914f1").expect("alice address")];
 }
 
 impl pallet_evm::Config for Runtime {
@@ -145,6 +149,9 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = ();
 	type SuicideQuickClearLimit = SuicideQuickClearLimit;
+
+	type CreateOrigin = EnsureAllowedCreateAddress<AllowedAddressesCreate>;
+	type CreateInnerOrigin = EnsureAllowedCreateAddress<AllowedAddressesCreateInner>;
 }
 
 /// Build test externalities, prepopulated with data for testing the precompile.
