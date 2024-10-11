@@ -21,7 +21,7 @@
 // #[precompile_utils::precompile] need this
 extern crate alloc;
 
-use std::{cell::RefCell, rc::Rc, str::FromStr};
+use std::{cell::RefCell, rc::Rc};
 
 // Substrate
 use frame_support::{
@@ -34,7 +34,7 @@ use sp_runtime::{
 };
 // Frontier
 use fp_evm::{ExitReason, ExitRevert, PrecompileFailure, PrecompileHandle};
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, EnsureAllowedCreateAddress};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::{
 	precompile_set::*,
 	solidity::{codec::Writer, revert::revert},
@@ -227,9 +227,6 @@ parameter_types! {
 		block_gas_limit.saturating_div(MAX_POV_SIZE)
 	};
 	pub SuicideQuickClearLimit: u32 = 0;
-
-	pub AllowedAddressesCreate: Vec<H160> = vec![H160::from_str("0x1a642f0e3c3af545e7acbd38b07251b3990914f1").expect("alice address")];
-	pub AllowedAddressesCreateInner: Vec<H160> = vec![H160::from_str("0x1a642f0e3c3af545e7acbd38b07251b3990914f1").expect("alice address")];
 }
 
 impl pallet_evm::Config for Runtime {
@@ -254,8 +251,6 @@ impl pallet_evm::Config for Runtime {
 	type SuicideQuickClearLimit = SuicideQuickClearLimit;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
-	type CreateOrigin = EnsureAllowedCreateAddress<AllowedAddressesCreate>;
-	type CreateInnerOrigin = EnsureAllowedCreateAddress<AllowedAddressesCreateInner>;
 }
 
 parameter_types! {
@@ -319,7 +314,6 @@ fn default_checks_revert_when_called_by_contract() {
 		pallet_evm::Pallet::<Runtime>::create_account(
 			Alice.into(),
 			hex_literal::hex!("1460006000fd").to_vec(),
-			None
 		);
 
 		precompiles()
@@ -345,7 +339,6 @@ fn callable_by_contract_works() {
 		pallet_evm::Pallet::<Runtime>::create_account(
 			Alice.into(),
 			hex_literal::hex!("1460006000fd").to_vec(),
-			None
 		);
 
 		precompiles()

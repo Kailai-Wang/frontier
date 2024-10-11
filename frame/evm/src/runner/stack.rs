@@ -53,7 +53,7 @@ use crate::{
 };
 
 #[cfg(feature = "forbid-evm-reentrancy")]
-environmental::environmental!(IN_EVM: bool);
+environmental::thread_local_impl!(static IN_EVM: environmental::RefCell<bool> = environmental::RefCell::new(false));
 
 #[derive(Default)]
 pub struct Runner<T: Config> {
@@ -92,7 +92,14 @@ where
 	{
 		let (base_fee, weight) = T::FeeCalculator::min_gas_price();
 
-		#[cfg(not(feature = "forbid-evm-reentrancy"))]
+		#[cfg(feature = "forbid-evm-reentrancy")]
+		if IN_EVM.with(|in_evm| in_evm.replace(true)) {
+			return Err(RunnerError {
+				error: Error::<T>::Reentrancy,
+				weight,
+			});
+		}
+
 		let res = Self::execute_inner(
 			source,
 			value,
@@ -109,44 +116,10 @@ where
 			proof_size_base_cost,
 		);
 
+		// Set IN_EVM to false
+		// We should make sure that this line is executed whatever the execution path.
 		#[cfg(feature = "forbid-evm-reentrancy")]
-		let res = IN_EVM::using_once(&mut false, || {
-			IN_EVM::with(|in_evm| {
-				if *in_evm {
-					return Err(RunnerError {
-						error: Error::<T>::Reentrancy,
-						weight,
-					});
-				}
-				*in_evm = true;
-				Ok(())
-			})
-			// This should always return `Some`, but let's play it safe.
-			.unwrap_or(Ok(()))?;
-
-			// Ensure that we always release the lock whenever we finish processing
-			sp_core::defer! {
-				IN_EVM::with(|in_evm| {
-					*in_evm = false;
-				});
-			}
-
-			Self::execute_inner(
-				source,
-				value,
-				gas_limit,
-				max_fee_per_gas,
-				max_priority_fee_per_gas,
-				config,
-				precompiles,
-				is_transactional,
-				f,
-				base_fee,
-				weight,
-				weight_limit,
-				proof_size_base_cost,
-			)
-		});
+		let _ = IN_EVM.with(|in_evm| in_evm.take());
 
 		res
 	}
@@ -212,11 +185,7 @@ where
 		//
 		// EIP-3607: https://eips.ethereum.org/EIPS/eip-3607
 		// Do not allow transactions for which `tx.sender` has any code deployed.
-		if is_transactional
-			&& !<AccountCodesMetadata<T>>::get(source)
-				.unwrap_or_default()
-				.size == 0
-		{
+		if is_transactional && !<AccountCodes<T>>::get(source).is_empty() {
 			return Err(RunnerError {
 				error: Error::<T>::TransactionMustComeFromEOA,
 				weight,
@@ -499,6 +468,12 @@ where
 		proof_size_base_cost: Option<u64>,
 		config: &evm::Config,
 	) -> Result<CreateInfo, RunnerError<Self::Error>> {
+		let (_, weight) = T::FeeCalculator::min_gas_price();
+
+ 		T::CreateOrigin::check_create_origin(&source).map_err(|error| {
+			RunnerError {error, weight}
+		})?;
+
 		if validate {
 			Self::validate(
 				source,
@@ -554,6 +529,12 @@ where
 		proof_size_base_cost: Option<u64>,
 		config: &evm::Config,
 	) -> Result<CreateInfo, RunnerError<Self::Error>> {
+		let (_, weight) = T::FeeCalculator::min_gas_price();
+
+		T::CreateOrigin::check_create_origin(&source).map_err(|error| {
+		   RunnerError {error, weight}
+	   	})?;
+
 		if validate {
 			Self::validate(
 				source,
@@ -815,11 +796,7 @@ where
 	}
 
 	fn code(&self, address: H160) -> Vec<u8> {
-		if AccountCodesMetadata::<T>::contains_key(address) {
-			<AccountCodes<T>>::get(address)
-		} else {
-			Default::default()
-		}
+		<AccountCodes<T>>::get(address)
 	}
 
 	fn storage(&self, address: H160, index: H256) -> H256 {
@@ -1010,14 +987,23 @@ where
 							return Ok(());
 						}
 
-						// We should record metadata read as well
 						weight_info
 							.try_record_proof_size_or_fail(ACCOUNT_CODES_METADATA_PROOF_SIZE)?;
-
 						if let Some(meta) = <AccountCodesMetadata<T>>::get(address) {
 							weight_info.try_record_proof_size_or_fail(meta.size)?;
-						}
+						} else if let Some(remaining_proof_size) =
+							weight_info.remaining_proof_size()
+						{
+							let pre_size = remaining_proof_size.min(size_limit);
+							weight_info.try_record_proof_size_or_fail(pre_size)?;
 
+							let actual_size = Pallet::<T>::account_code_metadata(address).size;
+							if actual_size > pre_size {
+								return Err(ExitError::OutOfGas);
+							}
+							// Refund unused proof size
+							weight_info.refund_proof_size(pre_size.saturating_sub(actual_size));
+						}
 						recorded.account_codes.push(address);
 					}
 				}
@@ -1035,7 +1021,7 @@ where
 	fn record_external_dynamic_opcode_cost(
 		&mut self,
 		opcode: Opcode,
-		gas_cost: GasCost,
+		_gas_cost: GasCost,
 		target: evm::gasometer::StorageTarget,
 	) -> Result<(), ExitError> {
 		// If account code or storage slot is in the overlay it is already accounted for and early exit
@@ -1085,6 +1071,16 @@ where
 
 					if let Some(meta) = <AccountCodesMetadata<T>>::get(address) {
 						weight_info.try_record_proof_size_or_fail(meta.size)?;
+					} else if let Some(remaining_proof_size) = weight_info.remaining_proof_size() {
+						let pre_size = remaining_proof_size.min(size_limit);
+						weight_info.try_record_proof_size_or_fail(pre_size)?;
+
+						let actual_size = Pallet::<T>::account_code_metadata(address).size;
+						if actual_size > pre_size {
+							return Err(ExitError::OutOfGas);
+						}
+						// Refund unused proof size
+						weight_info.refund_proof_size(pre_size.saturating_sub(actual_size));
 					}
 
 					Ok(())

@@ -608,7 +608,6 @@ type NegativeImbalanceOf<C, T> =
 	PartialEq,
 	Encode,
 	Decode,
-	Default,
 	TypeInfo,
 	MaxEncodedLen
 )]
@@ -832,9 +831,7 @@ impl<T: Config> Pallet<T> {
 	/// Check whether an account is empty.
 	pub fn is_account_empty(address: &H160) -> bool {
 		let (account, _) = Self::account_basic(address);
-		let code_len = <AccountCodesMetadata<T>>::get(address)
-			.unwrap_or_default()
-			.size;
+		let code_len = <AccountCodes<T>>::decode_len(address).unwrap_or(0);
 
 		account.nonce == U256::zero() && account.balance == U256::zero() && code_len == 0
 	}
