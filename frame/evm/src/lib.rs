@@ -260,6 +260,10 @@ pub mod pallet {
 			type FindAuthor = FindAuthorTruncated;
 			type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 			type SuicideQuickClearLimit = SuicideQuickClearLimit;
+			
+			type CreateOrigin = ();
+			
+			type CreateInnerOrigin = ();
 			type WeightInfo = ();
 		}
 
