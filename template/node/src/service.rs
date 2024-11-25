@@ -1,8 +1,9 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
-use std::{cell::RefCell, path::Path, sync::Arc, time::Duration};
+use std::{cell::RefCell, default::Default as StdDefault, path::Path, sync::Arc, time::Duration};
 
 use futures::{channel::mpsc, prelude::*};
+use jsonrpsee::server::middleware::http::Port::Default;
 // Substrate
 use prometheus_endpoint::Registry;
 use sc_client_api::{Backend as BackendT, BlockBackend};
@@ -12,7 +13,6 @@ use sc_executor::HostFunctions as HostFunctionsT;
 use sc_network_sync::strategy::warp::{WarpSyncConfig, WarpSyncProvider};
 use sc_service::{error::Error as ServiceError, Configuration, PartialComponents, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker};
-use sc_transaction_pool::FullPool;
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_api::ConstructRuntimeApi;
 use sp_consensus_aura::sr25519::{AuthorityId as AuraId, AuthorityPair as AuraPair};
@@ -43,6 +43,9 @@ pub type HostFunctions = (
 /// Otherwise we use empty host functions for ext host functions.
 #[cfg(not(feature = "runtime-benchmarks"))]
 pub type HostFunctions = sp_io::SubstrateHostFunctions;
+
+type FullPool<B, Client> =
+	sc_transaction_pool::BasicPool<sc_transaction_pool::FullChainApi<Client, B>, B>;
 
 pub type Backend = FullBackend<Block>;
 pub type Client = FullClient<Block, RuntimeApi, HostFunctions>;
@@ -168,7 +171,7 @@ where
 	)?;
 
 	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
-		config.transaction_pool.clone(),
+		StdDefault::default(),
 		config.role.is_authority().into(),
 		config.prometheus_registry(),
 		task_manager.spawn_essential_handle(),
@@ -182,7 +185,7 @@ where
 		task_manager,
 		select_chain,
 		import_queue,
-		transaction_pool,
+		transaction_pool: transaction_pool.into(),
 		other: (
 			telemetry,
 			block_import,
@@ -234,7 +237,7 @@ where
 			create_inherent_data_providers,
 			spawner: &task_manager.spawn_essential_handle(),
 			registry: config.prometheus_registry(),
-			check_for_equivocation: Default::default(),
+			check_for_equivocation: StdDefault::default(),
 			telemetry,
 			compatibility_mode: sc_consensus_aura::CompatibilityMode::None,
 		},
@@ -396,7 +399,7 @@ where
 	// This way we avoid race conditions when using native substrate block import notification stream.
 	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
 		fc_mapping_sync::EthereumBlockNotification<B>,
-	> = Default::default();
+	> = StdDefault::default();
 	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
 
 	// for ethereum-compatibility rpc.
