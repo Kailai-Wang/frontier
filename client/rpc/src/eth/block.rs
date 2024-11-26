@@ -147,7 +147,7 @@ where
 					graph
 						.validated_pool()
 						.ready()
-						.map(|in_pool_tx| in_pool_tx.data().clone())
+						.map(|in_pool_tx| sc_service::Arc::<<B as sp_runtime::traits::Block>::Extrinsic>::unwrap_or_clone(in_pool_tx.data().clone()))
 						.collect::<Vec<<B as BlockT>::Extrinsic>>(),
 				);
 
@@ -157,7 +157,9 @@ where
 						.validated_pool()
 						.futures()
 						.iter()
-						.map(|(_hash, extrinsic)| extrinsic.clone())
+						.map(|(_hash, extrinsic)| {
+							sc_service::Arc::<<B as sp_runtime::traits::Block>::Extrinsic>::unwrap_or_clone(extrinsic.clone())
+						})
 						.collect::<Vec<<B as BlockT>::Extrinsic>>(),
 				);
 

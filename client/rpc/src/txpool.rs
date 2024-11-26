@@ -109,7 +109,11 @@ where
 			.graph
 			.validated_pool()
 			.ready()
-			.map(|in_pool_tx| in_pool_tx.data().clone())
+			.map(|in_pool_tx| {
+				sc_service::Arc::<<B as sp_runtime::traits::Block>::Extrinsic>::unwrap_or_clone(
+					in_pool_tx.data().clone(),
+				)
+			})
 			.collect();
 
 		// Collect extrinsics in the future validated pool.
@@ -118,7 +122,11 @@ where
 			.validated_pool()
 			.futures()
 			.iter()
-			.map(|(_, extrinsic)| extrinsic.clone())
+			.map(|(_, extrinsic)| {
+				sc_service::Arc::<<B as sp_runtime::traits::Block>::Extrinsic>::unwrap_or_clone(
+					extrinsic.clone(),
+				)
+			})
 			.collect();
 
 		// Use the runtime to match the (here) opaque extrinsics against ethereum transactions.
