@@ -17,7 +17,6 @@
 
 //! Test utilities
 
-use core::str::FromStr;
 use ethereum::{TransactionAction, TransactionSignature};
 use rlp::RlpStream;
 // Substrate
@@ -34,7 +33,7 @@ use sp_runtime::{
 };
 // Frontier
 use pallet_evm::{
-	AddressMapping, EnsureAddressTruncated, EnsureAllowedCreateAddress, FeeCalculator,
+	AddressMapping, EnsureAddressTruncated, FeeCalculator,
 };
 
 use super::*;
@@ -159,9 +158,6 @@ impl AddressMapping<AccountId32> for HashedAddressMapping {
 
 parameter_types! {
 	pub SuicideQuickClearLimit: u32 = 0;
-	// Alice is allowed to create contracts via CREATE and CALL(CREATE)
-	pub AllowedAddressesCreate: Vec<H160> = vec![H160::from_str("0x1a642f0e3c3af545e7acbd38b07251b3990914f1").expect("alice address")];
-	pub AllowedAddressesCreateInner: Vec<H160> = vec![H160::from_str("0x1a642f0e3c3af545e7acbd38b07251b3990914f1").expect("alice address")];
 }
 
 impl pallet_evm::Config for Test {
@@ -170,8 +166,6 @@ impl pallet_evm::Config for Test {
 	type WeightPerGas = WeightPerGas;
 	type BlockHashMapping = crate::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressTruncated;
-	type CreateOrigin = EnsureAllowedCreateAddress<AllowedAddressesCreate>;
-	type CreateInnerOrigin = EnsureAllowedCreateAddress<AllowedAddressesCreateInner>;
 	type WithdrawOrigin = EnsureAddressTruncated;
 	type AddressMapping = HashedAddressMapping;
 	type Currency = Balances;

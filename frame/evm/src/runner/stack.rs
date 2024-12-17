@@ -48,7 +48,7 @@ use fp_evm::{
 
 use crate::{
 	runner::Runner as RunnerT, AccountCodes, AccountCodesMetadata, AccountStorages, AddressMapping,
-	BalanceOf, BlockHashMapping, Config, EnsureCreateOrigin, Error, Event, FeeCalculator,
+	BalanceOf, BlockHashMapping, Config, Error, Event, FeeCalculator,
 	OnChargeEVMTransaction, OnCreate, Pallet, RunnerError,
 };
 
@@ -468,11 +468,6 @@ where
 		proof_size_base_cost: Option<u64>,
 		config: &evm::Config,
 	) -> Result<CreateInfo, RunnerError<Self::Error>> {
-		let (_, weight) = T::FeeCalculator::min_gas_price();
-
-		T::CreateOrigin::check_create_origin(&source)
-			.map_err(|error| RunnerError { error, weight })?;
-
 		if validate {
 			Self::validate(
 				source,
@@ -528,11 +523,6 @@ where
 		proof_size_base_cost: Option<u64>,
 		config: &evm::Config,
 	) -> Result<CreateInfo, RunnerError<Self::Error>> {
-		let (_, weight) = T::FeeCalculator::min_gas_price();
-
-		T::CreateOrigin::check_create_origin(&source)
-			.map_err(|error| RunnerError { error, weight })?;
-
 		if validate {
 			Self::validate(
 				source,
@@ -900,19 +890,14 @@ where
 		self.substate.set_deleted(address)
 	}
 
-	fn set_code(
-		&mut self,
-		address: H160,
-		code: Vec<u8>,
-		caller: Option<H160>,
-	) -> Result<(), ExitError> {
+	fn set_code(&mut self, address: H160, code: Vec<u8>) {
 		log::debug!(
 			target: "evm",
 			"Inserting code ({} bytes) at {:?}",
 			code.len(),
 			address
 		);
-		return Pallet::<T>::create_account(address, code, caller);
+		Pallet::<T>::create_account(address, code);
 	}
 
 	fn transfer(&mut self, transfer: Transfer) -> Result<(), ExitError> {
